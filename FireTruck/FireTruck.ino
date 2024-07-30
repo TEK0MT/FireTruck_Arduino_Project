@@ -58,10 +58,12 @@ void loop() {
   int righ = digitalRead(FLAMERIGHT);
   int left = digitalRead(FLAMELEFT);
   int center = digitalRead(FLAMECENTER);
+  int gasSensorValue = digitalRead(MQ2);
   if((righ == HIGH && center == HIGH && left == HIGH) || (righ == LOW && center == LOW && left == LOW)){
     move_Stop();
-   
-    
+    if(gasSensorValue==HIGH){
+    fire_off();
+    }
   }
   else if(righ == LOW && center == HIGH && left == HIGH){
     move_Right();
