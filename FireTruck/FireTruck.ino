@@ -1,11 +1,14 @@
 #define FLAMERIGHT 2
 #define FLAMECENTER 3 
 #define FLAMELEFT 4
+#define MQ2 12
 
 #define M1  7
 #define M2  8
 #define M3  5
 #define M4  6
+#define Pump 13
+
 void move_forward(){
   digitalWrite(M1,HIGH);
   digitalWrite(M3,HIGH);
@@ -30,15 +33,20 @@ void move_Stop(){
   digitalWrite(M1,LOW);
   digitalWrite(M3,LOW);
 }
+void fire_off(){
+digitalWrite(Pump,HIGH);
+}
 void setup() {
   // put your setup code here, to run once:
   pinMode(FLAMERIGHT,INPUT);
   pinMode(FLAMECENTER,INPUT);
   pinMode(FLAMELEFT,INPUT);
+  pinMode(MQ2,INPUT);
   pinMode(M1,OUTPUT);
   pinMode(M2,OUTPUT);
   pinMode(M3,OUTPUT);
   pinMode(M4,OUTPUT);
+  pinMode(Pump,OUTPUT);
 Serial.begin(9600);
 }
 
