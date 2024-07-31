@@ -2,11 +2,12 @@
 #define FLAMECENTER 3 
 #define FLAMELEFT 4
 #define MQ2 A0
-#define ULTRASONIC A1
-#define M1  7
-#define M2  8
-#define M3  5
-#define M4  6
+#define ULTRASONIC_TRIG A1
+#define ULTRASONIC_ECHO A2
+#define M1  8
+#define M2  7
+#define M3  6
+#define M4  5
 #define Pump 13
 
 void move_forward(){
@@ -25,10 +26,10 @@ void move_Left(){
   digitalWrite(M3,LOW);
   digitalWrite(M4,HIGH);
   digitalWrite(M1,HIGH);
-  digitalWrite(M3,LOW);
+  digitalWrite(M2,LOW);
 }
 void move_Stop(){
-  digitalWrite(M3,LOW);
+  digitalWrite(M2,LOW);
   digitalWrite(M4,LOW);
   digitalWrite(M1,LOW);
   digitalWrite(M3,LOW);
@@ -61,9 +62,6 @@ Serial.begin(9600);
 
 void loop() {
   // put your main code here, to run repeatedly:
-  digitalWrite(9,LOW);
-  digitalWrite(8,LOW);
-  digitalWrite(10,LOW);
   int righ = digitalRead(FLAMERIGHT);
   int left = digitalRead(FLAMELEFT);
   int center = digitalRead(FLAMECENTER);
@@ -88,13 +86,14 @@ void loop() {
     fire_off();
     }
   }
-  else if(righ == LOW && center == HIGH && left == HIGH){
+  else if(righ == HIGH && left == LOW){
     move_Right();
   }
-  else if(left == LOW && righ == HIGH && center == HIGH){
+  else if(left == HIGH && righ == LOW){
     move_Left();
   }
   else if (center == LOW){
     move_forward();
   }
+  else{move_Stop();}
 }
