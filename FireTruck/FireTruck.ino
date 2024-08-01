@@ -1,99 +1,146 @@
+/*
+* AUTHORS : OLA MOHAMED , MARIAM ADHMA , MOHAMED TAREK
+* LAST UPDTAED : 1 AUGUST 2024
+* 
+*/
+#include <Servo.h>
+
 #define FLAMERIGHT 2
 #define FLAMECENTER 3 
 #define FLAMELEFT 4
 #define MQ2 A0
 #define ULTRASONIC_TRIG A1
 #define ULTRASONIC_ECHO A2
-#define M1  8
-#define M2  7
-#define M3  6
-#define M4  5
+#define M1 8
+#define M2 7
+#define M3 6
+#define M4 5
 #define Pump 13
+#define SERVO_PIN 9
 
-void move_forward(){
-  digitalWrite(M1,HIGH);
-  digitalWrite(M3,HIGH);
-  digitalWrite(M2,LOW);
-  digitalWrite(M4,LOW);
+Servo myservo;
+
+void move_forward() {
+  digitalWrite(M1, HIGH);
+  digitalWrite(M3, HIGH);
+  digitalWrite(M2, LOW);
+  digitalWrite(M4, LOW);
 }
-void move_Right(){
-  digitalWrite(M1,LOW);
-  digitalWrite(M3,HIGH);
-  digitalWrite(M2,HIGH);
-  digitalWrite(M4,LOW);
+
+void move_Right() {
+  digitalWrite(M1, LOW);
+  digitalWrite(M3, HIGH);
+  digitalWrite(M2, HIGH);
+  digitalWrite(M4, LOW);
 }
-void move_Left(){
-  digitalWrite(M3,LOW);
-  digitalWrite(M4,HIGH);
-  digitalWrite(M1,HIGH);
-  digitalWrite(M2,LOW);
+
+void move_Left() {
+  digitalWrite(M3, LOW);
+  digitalWrite(M4, HIGH);
+  digitalWrite(M1, HIGH);
+  digitalWrite(M2, LOW);
 }
-void move_Stop(){
-  digitalWrite(M2,LOW);
-  digitalWrite(M4,LOW);
-  digitalWrite(M1,LOW);
-  digitalWrite(M3,LOW);
+
+void move_Stop() {
+  digitalWrite(M2, LOW);
+  digitalWrite(M4, LOW);
+  digitalWrite(M1, LOW);
+  digitalWrite(M3, LOW);
 }
-void fire_off(){
-digitalWrite(Pump,HIGH);
+
+void fire_off() {
+  digitalWrite(Pump, HIGH);
 }
-int look_left(){
-  int distance=analogRead(ULTRASONIC);
+
+void fire_off_stop() {
+  digitalWrite(Pump, LOW);
+}
+
+long measure_distance() {
+  digitalWrite(ULTRASONIC_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(ULTRASONIC_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(ULTRASONIC_TRIG, LOW);
+  long duration = pulseIn(ULTRASONIC_ECHO, HIGH);
+  long distance = duration * 0.034 / 2;
   return distance;
 }
-int look_right(){
- int distance=analogRead(ULTRASONIC);
-  return distance;
-}
+
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(FLAMERIGHT,INPUT);
-  pinMode(FLAMECENTER,INPUT);
-  pinMode(FLAMELEFT,INPUT);
-  pinMode(MQ2,INPUT);
-  pinMode(ULTRASONIC,INPUT);
-  pinMode(M1,OUTPUT);
-  pinMode(M2,OUTPUT);
-  pinMode(M3,OUTPUT);
-  pinMode(M4,OUTPUT);
-  pinMode(Pump,OUTPUT);
-Serial.begin(9600);
+  pinMode(FLAMERIGHT, INPUT);
+  pinMode(FLAMECENTER, INPUT);
+  pinMode(FLAMELEFT, INPUT);
+  pinMode(MQ2, INPUT);
+  pinMode(ULTRASONIC_TRIG, OUTPUT);
+  pinMode(ULTRASONIC_ECHO, INPUT);
+  pinMode(M1, OUTPUT);
+  pinMode(M2, OUTPUT);
+  pinMode(M3, OUTPUT);
+  pinMode(M4, OUTPUT);
+  pinMode(Pump, OUTPUT);
+  
+  myservo.attach(SERVO_PIN);
+
+  Serial.begin(9600);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   int righ = digitalRead(FLAMERIGHT);
   int left = digitalRead(FLAMELEFT);
   int center = digitalRead(FLAMECENTER);
-  int gasSensorValue = analoglRead(MQ2);
-  int distance = analogRead(ULTRASONIC);
-  if((righ == HIGH && center == HIGH && left == HIGH) || (righ == LOW && center == LOW && left == LOW)){
-    move_Stop();
-    if (distance>15&&gasSensorValue<300){
-       move_stop();
-       delay(250);
-       distanceLeft=look_left();
-       distanceRight=look_Right();
- if (distance<distanceLeft){
-  move_left();
- }
- else{
-  move_right();
- }
+  int gasSensorValue = analogRead(MQ2);
+  long distance = measure_distance();
+  
+  if (righ == LOW && left == LOW && center == LOW) {
+    fire_off_stop();
+    
+    if (distance < 15 && gasSensorValue < 300) {
+      move_Stop();
+      delay(250);
 
-}
-  else if(gasSensorValue>=300){
-    fire_off();
+      // Scan surroundings
+      myservo.write(45);
+      long distanceLeft = measure_distance();
+      
+      myservo.write(135);
+      long distanceRight = measure_distance();
+      
+      myservo.write(90);
+
+      // Choose direction based on the largest available space
+      if (distanceLeft > distanceRight) {
+        move_Left();
+        delay(map(distanceLeft, 15, 200, 300, 2000)); // Adjust turn duration based on distance
+      } else if (distanceRight > distanceLeft) {
+        move_Right();
+        delay(map(distanceRight, 15, 200, 300, 2000)); // Adjust turn duration based on distance
+      } else {
+        move_Stop();
+      }
+    } else {
+      move_forward();
     }
-  }
-  else if(righ == HIGH && left == LOW){
+  } else if (righ == HIGH && left == HIGH && center == HIGH) {
+    if (distance < 15 && gasSensorValue >= 300) {
+      move_Stop();
+      fire_off();
+    } else {
+      move_forward();
+      fire_off_stop();
+    }
+  } else if (righ == HIGH && left == LOW) {
     move_Right();
-  }
-  else if(left == HIGH && righ == LOW){
+    fire_off_stop();
+  } else if (left == HIGH && righ == LOW) {
     move_Left();
-  }
-  else if (center == LOW){
+    fire_off_stop();
+  } else if (center == HIGH) {
     move_forward();
+    fire_off_stop();
+  } else {
+    move_Stop();
+    fire_off_stop();
   }
-  else{move_Stop();}
 }
+
