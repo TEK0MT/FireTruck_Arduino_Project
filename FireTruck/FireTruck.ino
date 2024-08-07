@@ -79,7 +79,7 @@ void setup() {
   pinMode(M3, OUTPUT);
   pinMode(M4, OUTPUT);
   pinMode(Pump, OUTPUT);
-  pinMode(SERVO_PIN, OUTPUT);
+  
   myservo.attach(SERVO_PIN);
 
   Serial.begin(9600);
