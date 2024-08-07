@@ -8,7 +8,7 @@
 #define FLAMERIGHT 2
 #define FLAMECENTER 3 
 #define FLAMELEFT 4
-#define MQ2 A0
+#define MQ2 A4
 #define ULTRASONIC_TRIG A1
 #define ULTRASONIC_ECHO A2
 #define M1 8
@@ -79,7 +79,7 @@ void setup() {
   pinMode(M3, OUTPUT);
   pinMode(M4, OUTPUT);
   pinMode(Pump, OUTPUT);
-  
+  pinMode(SERVO_PIN, OUTPUT);
   myservo.attach(SERVO_PIN);
 
   Serial.begin(9600);
@@ -90,11 +90,15 @@ void loop() {
   int left = digitalRead(FLAMELEFT);
   int center = digitalRead(FLAMECENTER);
   int gasSensorValue = analogRead(MQ2);
+  int value = map(gasSensorValue,0,1023,0,255);
+  
+  Serial.print("gas : ");
+  Serial.println(value);
   long distance = measure_distance();
   
   if (righ == LOW && left == LOW && center == LOW) {
     fire_off_stop();
-    
+    move_forward();
     if (distance < 15 && gasSensorValue < 300) {
       move_Stop();
       delay(250);
@@ -122,9 +126,15 @@ void loop() {
       move_forward();
     }
   } else if (righ == HIGH && left == HIGH && center == HIGH) {
-    if (distance < 15 && gasSensorValue >= 300) {
+    if (distance < 15) {
       move_Stop();
-      fire_off();
+      fire_off_stop();
+      if(gasSensorValue > 300){
+        fire_off();
+      }
+      else {
+        fire_off_stop();
+      }
     } else {
       move_forward();
       fire_off_stop();
